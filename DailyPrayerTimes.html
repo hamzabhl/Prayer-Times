@@ -73,7 +73,7 @@
 
         #countDown {
             width: fit-content;
-            padding: 30px;
+            padding: 0px 30px;
             border-radius: 18px;
             background: rgba(255, 255, 255, 0.8);
             color: #000;
@@ -94,7 +94,7 @@
 
         .small {
             font-size: 12px;
-            color: #000000;
+            color: #3d3d3d;
             margin-top: 6px;
         }
 
@@ -113,14 +113,14 @@
 <body>
     <div id="card">
         <div id="date"></div>
+        <div id="city">
+            <select id="citySelect"></select>
+        </div>
         <div id="timings"></div>
         <div id="countDown">
             <h3 id="prayerName">—</h3>
             <h3 id="countdown">00:00:00</h3>
             <h4 class="small"><span id="localTime">--:--:--</span></h4>
-        </div>
-        <div id="city">
-            <select id="citySelect"></select>
         </div>
     </div>
 
@@ -361,8 +361,8 @@
 
                         if (d.totalMs <= 1000 && d.totalMs >= 0) {
                             countdownEl.textContent = "00:00:00";
-                            document.querySelector('.card').style.transform = 'scale(1.02)';
-                            setTimeout(() => document.querySelector('.card').style.transform = '', 600);
+                            document.querySelector('#card').style.transform = 'scale(1.02)';
+                            setTimeout(() => document.querySelector('#card').style.transform = '', 600);
                             setTimeout(() => { currentTarget = getNextPrayer(pTimes, pNames); }, 1200);
                         }
                     }
