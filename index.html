@@ -187,7 +187,7 @@
                 fetchPrayerTimes(currentLat, currentLon);
                 return;
             }
-            document.getElementById("prayerName").textContent = currentTarget.name;
+            document.getElementById("prayerName").textContent = `الوقت المتبقي لصلاة ${currentTarget.name}`;
             const d = diffFromNow(currentTarget.time);
             const hoursTotal = d.days * 24 + d.hours;
             document.getElementById("countdown").textContent = pad(hoursTotal) + ":" + pad(d.minutes) + ":" + pad(d.seconds);
