@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prayer Times</title>
+
+    <!-- axios -->
+    <script src="./node_modules/axios/dist/axios.js"></script>
+
+    <!-- Arabic Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: "Tajawal", sans-serif;
+            background: #000;
+            margin: 0;
+            color: white;
+            direction: rtl;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #card {
+            height: 100vh;
+            width: 100%;
+            background: url("mosque-interior.jpg") center/cover no-repeat;
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+
+        #date {
+            background: rgba(0, 0, 0, 0.6);
+            width: 70%;
+            padding: 15px 25px;
+            border-radius: 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .date-column {
+            text-align: center;
+        }
+
+        #timings {
+            display: flex;
+            justify-content: space-evenly;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-bottom: 30px;
+        }
+
+        .prayer {
+            width: 110px;
+            padding: 12px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #000;
+            text-align: center;
+        }
+
+        #countDown {
+            width: fit-content;
+            padding: 30px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #000;
+            text-align: center;
+        }
+
+        .prayer h2 {
+            margin: 5px 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .prayer h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .small {
+            font-size: 12px;
+            color: #000000;
+            margin-top: 6px;
+        }
+
+        #city {
+            width: fit-content;
+            padding: 12px;
+            border-radius: 18px;
+            background: rgba(37, 37, 37, 0.8);
+            color: #000;
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="card">
+        <div id="date"></div>
+        <div id="timings"></div>
+        <div id="countDown">
+            <h3 id="prayerName">—</h3>
+            <h3 id="countdown">00:00:00</h3>
+            <h4 class="small"><span id="localTime">--:--:--</span></h4>
+        </div>
+        <div id="city">
+            <select id="citySelect"></select>
+        </div>
+    </div>
+
+    <script>
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = today.getMonth() + 1;
+        const d = today.getDate();
+
+        let months = {
+            1: "يناير",
+            2: "فبراير",
+            3: "مارس",
+            4: "أبريل",
+            5: "ماي",
+            6: "يونيو",
+            7: "يوليوز",
+            8: "غشت",
+            9: "شتنبر",
+            10: "أكتوبر",
+            11: "نونبر",
+            12: "دجنبر"
+        }
+
+        const moroccanCities = [
+            { "city": "Casablanca", "lat": 33.5731, "lng": -7.5898 },
+            { "city": "Rabat", "lat": 34.0209, "lng": -6.8416 },
+            { "city": "Fes", "lat": 34.0331, "lng": -5.0003 },
+            { "city": "Marrakesh", "lat": 31.6295, "lng": -7.9811 },
+            { "city": "Tangier", "lat": 35.7595, "lng": -5.8340 },
+            { "city": "Agadir", "lat": 30.4278, "lng": -9.5981 },
+            { "city": "Meknes", "lat": 33.8935, "lng": -5.5473 },
+            { "city": "Oujda", "lat": 34.6814, "lng": -1.9086 },
+            { "city": "Kenitra", "lat": 34.2610, "lng": -6.5802 },
+            { "city": "Tetouan", "lat": 35.5785, "lng": -5.3684 },
+            { "city": "Temara", "lat": 33.9287, "lng": -6.9063 },
+            { "city": "Safi", "lat": 32.2994, "lng": -9.2372 },
+            { "city": "El Jadida", "lat": 33.2316, "lng": -8.5007 },
+            { "city": "Nador", "lat": 35.1680, "lng": -2.9335 },
+            { "city": "Beni Mellal", "lat": 32.3372, "lng": -6.3498 },
+            { "city": "Taza", "lat": 34.2173, "lng": -4.0117 },
+            { "city": "Mohammedia", "lat": 33.6895, "lng": -7.3898 },
+            { "city": "Khouribga", "lat": 32.8829, "lng": -6.9063 },
+            { "city": "Settat", "lat": 33.0000, "lng": -7.6167 },
+            { "city": "Sale", "lat": 34.0531, "lng": -6.7985 },
+            { "city": "Chefchaouen", "lat": 35.1714, "lng": -5.2697 },
+            { "city": "Laayoune", "lat": 27.1400, "lng": -13.2000 },
+            { "city": "Dakhla", "lat": 23.7081, "lng": -15.9360 },
+            { "city": "Errachidia", "lat": 31.9314, "lng": -4.4240 },
+            { "city": "Ouarzazate", "lat": 30.9335, "lng": -6.9370 },
+            { "city": "Kalaat M'Gouna", "lat": 31.0560, "lng": -6.4906 },
+            { "city": "Tinghir", "lat": 31.5150, "lng": -5.5300 },
+            { "city": "Midelt", "lat": 32.6848, "lng": -4.7440 },
+            { "city": "Azrou", "lat": 33.4344, "lng": -5.2214 },
+            { "city": "Ifrane", "lat": 33.5225, "lng": -5.1109 },
+            { "city": "Ouezzane", "lat": 34.7971, "lng": -5.5780 },
+            { "city": "Sefrou", "lat": 33.8315, "lng": -4.8353 },
+            { "city": "Boulemane", "lat": 33.3630, "lng": -4.7280 },
+            { "city": "Guercif", "lat": 34.2257, "lng": -3.3536 },
+            { "city": "Taourirt", "lat": 34.4070, "lng": -2.8974 },
+            { "city": "Berkane", "lat": 34.9210, "lng": -2.3170 },
+            { "city": "Al Hoceima", "lat": 35.2517, "lng": -3.9372 },
+            { "city": "Fnideq", "lat": 35.8492, "lng": -5.3575 },
+            { "city": "Martil", "lat": 35.6166, "lng": -5.2755 },
+            { "city": "M'diq", "lat": 35.6833, "lng": -5.3167 },
+            { "city": "Ksar El Kebir", "lat": 35.0000, "lng": -5.9000 },
+            { "city": "Larache", "lat": 35.1932, "lng": -6.1557 },
+            { "city": "Sidi Slimane", "lat": 34.2646, "lng": -5.9292 },
+            { "city": "Sidi Kacem", "lat": 34.2220, "lng": -5.7076 },
+            { "city": "Tiflet", "lat": 33.8940, "lng": -6.3160 },
+            { "city": "Khemisset", "lat": 33.8333, "lng": -6.0667 },
+            { "city": "Rommani", "lat": 33.5225, "lng": -6.6049 },
+            { "city": "Bouznika", "lat": 33.7894, "lng": -7.1595 },
+            { "city": "Skhirat", "lat": 33.8491, "lng": -7.0316 },
+            { "city": "Benslimane", "lat": 33.6167, "lng": -7.1167 },
+            { "city": "Azemmour", "lat": 33.2895, "lng": -8.3420 },
+            { "city": "Sidi Bennour", "lat": 32.6500, "lng": -8.4333 },
+            { "city": "Youssoufia", "lat": 32.2500, "lng": -8.5330 },
+            { "city": "Chichaoua", "lat": 31.5383, "lng": -8.7642 },
+            { "city": "Essaouira", "lat": 31.5085, "lng": -9.7595 },
+            { "city": "Taroudant", "lat": 30.4703, "lng": -8.8770 },
+            { "city": "Tiznit", "lat": 29.6964, "lng": -9.7322 },
+            { "city": "Guelmim", "lat": 28.9888, "lng": -10.0574 },
+            { "city": "Tan-Tan", "lat": 28.4370, "lng": -11.1030 },
+            { "city": "Sidi Ifni", "lat": 29.3794, "lng": -10.1720 },
+            { "city": "Zagora", "lat": 30.3320, "lng": -5.8383 },
+            { "city": "Fquih Ben Salah", "lat": 32.5000, "lng": -6.7000 },
+            { "city": "Demnate", "lat": 31.7300, "lng": -6.9700 },
+            { "city": "El Ksiba", "lat": 32.5700, "lng": -6.0100 },
+            { "city": "Sidi Rahal", "lat": 33.3430, "lng": -7.4720 },
+            { "city": "Berrechid", "lat": 33.2669, "lng": -7.5875 },
+            { "city": "El Gara", "lat": 33.0950, "lng": -7.0100 },
+            { "city": "Ouled Teima", "lat": 30.3935, "lng": -9.2180 },
+            { "city": "Ait Melloul", "lat": 30.3330, "lng": -9.5000 },
+            { "city": "Dcheira", "lat": 30.3620, "lng": -9.5370 },
+            { "city": "Imzouren", "lat": 35.1525, "lng": -3.8590 },
+            { "city": "Bni Bouayach", "lat": 35.0040, "lng": -3.9500 },
+            { "city": "Aourir", "lat": 30.4720, "lng": -9.6310 },
+            { "city": "Tamraght", "lat": 30.5169, "lng": -9.7009 },
+            { "city": "Taghazout", "lat": 30.5420, "lng": -9.7120 },
+            { "city": "Bouarfa", "lat": 32.5333, "lng": -1.9500 },
+            { "city": "Jerada", "lat": 34.3060, "lng": -2.1630 },
+            { "city": "Ain Beni Mathar", "lat": 34.0110, "lng": -2.0200 },
+            { "city": "Missour", "lat": 33.0500, "lng": -3.9930 },
+            { "city": "Rissani", "lat": 31.2820, "lng": -4.2740 },
+            { "city": "Merzouga", "lat": 31.0994, "lng": -4.0127 },
+            { "city": "Asilah", "lat": 35.4650, "lng": -6.0340 },
+            { "city": "Zribat", "lat": 34.0320, "lng": -5.0590 }
+        ];
+
+        let citiesList = document.getElementById("citySelect");
+
+        moroccanCities.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = `${c.lat},${c.lng}`;
+            opt.textContent = c.city;
+            citiesList.appendChild(opt);
+        })
+
+        citySelect.addEventListener("change", e => {
+            const [lat, lng] = e.target.value.split(",");
+            let currentLat = lat;
+            let currentLng = lng;
+            fetchPrayerTimes(lat, lng);
+        });
+
+        let currentLat = moroccanCities[0].lat;
+        let currentLng = moroccanCities[0].lng;
+        citySelect.value = `${currentLat},${currentLng}`;
+        fetchPrayerTimes(currentLat, currentLng);
+
+        function fetchPrayerTimes(lat, lng) {
+            axios.get(`https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${lat}&longitude=${lng}&method=21`)
+                .then((res) => {
+                    const data = res.data.data;
+
+                    const pTimes = [data.timings.Fajr, data.timings.Dhuhr, data.timings.Asr, data.timings.Maghrib, data.timings.Isha];
+                    const pNames = ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
+
+                    document.getElementById("date").innerHTML = `
+                    <div class="date-column">${data.date.hijri.weekday.ar}</div>
+                    <div class="date-column">${data.date.gregorian.day} ${months[data.date.gregorian.month.number]} ${data.date.gregorian.year}</div>
+                    <div class="date-column">${data.date.hijri.day} ${data.date.hijri.month.ar} ${data.date.hijri.year}</div>
+                `;
+
+                    const prayerNames = {
+                        Fajr: "الفجر",
+                        Sunrise: "الشروق",
+                        Dhuhr: "الظهر",
+                        Asr: "العصر",
+                        Sunset: "الغروب",
+                        Maghrib: "المغرب",
+                        Isha: "العشاء"
+                    };
+
+                    let timingsHTML = "";
+                    for (let key in prayerNames) {
+                        timingsHTML += `
+                        <div class="prayer">
+                            <h2>${prayerNames[key]}</h2>
+                            <h3>${data.timings[key]}</h3>
+                        </div>
+                    `;
+                    }
+
+                    document.getElementById("timings").innerHTML = timingsHTML;
+
+                    function parse(time) {
+                        const [h, m] = time.split(":");
+                        const d = new Date();
+                        d.setHours(h, m, 0, 0);
+                        return d;
+                    }
+
+                    function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+                    function getNextPrayer(prayerTimes, prayerNamesArr) {
+                        const now = new Date();
+                        const list = prayerTimes.map((t, i) => ({
+                            index: i,
+                            name: prayerNamesArr[i] ?? ("Prayer " + (i + 1)),
+                            time: parse(t)
+                        }));
+
+                        for (const p of list) {
+                            if (p.time.getTime() > now.getTime()) {
+                                return p;
+                            }
+                        }
+
+                        const tomorrow = new Date(now);
+                        tomorrow.setDate(now.getDate() + 1);
+                        const first = {
+                            index: 0,
+                            name: prayerNamesArr[0] ?? "Fajr",
+                            time: parseTimeToDate(prayerTimes[0], tomorrow)
+                        };
+                        return first;
+                    }
+
+
+
+
+                    // returns difference object between futureDate and now
+                    function diffFromNow(futureDate) {
+                        let diff = Math.max(0, futureDate.getTime() - Date.now());
+                        const days = Math.floor(diff / (24 * 3600 * 1000));
+                        diff -= days * 24 * 3600 * 1000;
+                        const hours = Math.floor(diff / (3600 * 1000));
+                        diff -= hours * 3600 * 1000;
+                        const minutes = Math.floor(diff / (60 * 1000));
+                        diff -= minutes * 60 * 1000;
+                        const seconds = Math.floor(diff / 1000);
+                        return { days, hours, minutes, seconds, totalMs: futureDate - Date.now() };
+                    }
+
+                    // ====== DISPLAY & LOOP ======
+                    const prayerNameEl = document.getElementById("prayerName");
+                    const countdownEl = document.getElementById("countdown");
+                    const prayerAtEl = document.getElementById("prayerAt");
+                    const localTimeEl = document.getElementById("localTime");
+
+                    let currentTarget = getNextPrayer(pTimes, pNames);
+
+                    function updateOncePerSecond() {
+                        const now = new Date();
+                        localTimeEl.textContent = `الوقت المحلي: ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+                        if (Date.now() >= currentTarget.time.getTime()) {
+                            currentTarget = getNextPrayer(pTimes, pNames);
+                        }
+
+                        prayerNameEl.textContent = `الوقت المتبقي لصلاة ${currentTarget.name}`;
+
+                        const d = diffFromNow(currentTarget.time);
+                        const hoursTotal = (d.days * 24) + d.hours;
+                        countdownEl.textContent = pad(hoursTotal) + ":" + pad(d.minutes) + ":" + pad(d.seconds);
+
+                        if (d.totalMs <= 1000 && d.totalMs >= 0) {
+                            countdownEl.textContent = "00:00:00";
+                            document.querySelector('.card').style.transform = 'scale(1.02)';
+                            setTimeout(() => document.querySelector('.card').style.transform = '', 600);
+                            setTimeout(() => { currentTarget = getNextPrayer(pTimes, pNames); }, 1200);
+                        }
+                    }
+
+                    updateOncePerSecond();
+                    setInterval(updateOncePerSecond, 1000);
+                })
+                .catch(err => console.error("API Error:", err));
+        }
+    </script>
+
+</body>
+
+</html>
