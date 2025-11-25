@@ -62,8 +62,7 @@
             padding-bottom: 20px;
         }
 
-        .prayer,
-        #countDown {
+        .prayer {
             width: 110px;
             padding: 12px;
             border-radius: 18px;
@@ -86,7 +85,7 @@
 
         .small {
             font-size: 12px;
-            color: #9fb0d9;
+            color: #525252;
             margin-top: 6px;
         }
 
@@ -96,6 +95,15 @@
             margin-bottom: 10px;
             font-size: 16px;
         }
+
+        #countDownBox {
+            width: fit-content;
+            padding: 20px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #000;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -104,7 +112,7 @@
         <div id="date"></div>
         <select id="citySelect"></select>
         <div id="timings"></div>
-        <div id="countDown">
+        <div id="countDownBox">
             <h3 id="prayerName">—</h3>
             <h3 id="countdown">00:00:00</h3>
             <h4 class="small">الوقت المحلي: <span id="localTime">--:--:--</span></h4>
@@ -173,7 +181,6 @@
                 time: parseTime(t, now)
             }));
             for (const p of list) if (p.time.getTime() > now.getTime()) return p;
-            // Tomorrow Fajr
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
             return { index: 0, name: prayerNamesArr[0], time: parseTime(prayerTimes[0], tomorrow) };
@@ -192,8 +199,6 @@
             const hoursTotal = d.days * 24 + d.hours;
             document.getElementById("countdown").textContent = pad(hoursTotal) + ":" + pad(d.minutes) + ":" + pad(d.seconds);
         }
-
-        // let currentLat, currentLon;
 
         function fetchPrayerTimes(lat, lon) {
             const today = new Date();
