@@ -137,6 +137,11 @@
             { city: "Errachidia", lat: 31.9314, lon: -4.4044 }
         ];
 
+        // let currentLat = moroccanCities[0].lat;
+        // let currentLon = moroccanCities[0].lon;
+        // citySelect.value = `${currentLat},${currentLon}`;
+        // fetchPrayerTimes(currentLat, currentLon);
+
         const citySelect = document.getElementById("citySelect");
         moroccanCities.forEach(city => {
             const opt = document.createElement("option");
@@ -145,10 +150,28 @@
             citySelect.appendChild(opt);
         });
 
-        let currentLat = moroccanCities[0].lat;
-        let currentLon = moroccanCities[0].lon;
+        const savedCity = localStorage.getItem("selectedCity");
+
+        const selectedCity = moroccanCities.find(
+            city => `${city.lat},${city.lon}` === savedCity
+        ) || moroccanCities[0];
+
+        let currentLat = selectedCity.lat;
+        let currentLon = selectedCity.lon;
+
         citySelect.value = `${currentLat},${currentLon}`;
-        fetchPrayerTimes(currentLat, currentLon);
+
+
+        // citySelect.addEventListener("change", e => {
+        //     const [lat, lon] = e.target.value.split(",");
+
+        //     currentLat = Number(lat);
+        //     currentLon = Number(lon);
+
+        //     localStorage.setItem("selectedCity", e.target.value);
+
+        //     fetchPrayerTimes(currentLat, currentLon);
+        // });
 
         let currentTarget;
 
@@ -242,9 +265,13 @@
 
         citySelect.addEventListener("change", e => {
             const [lat, lon] = e.target.value.split(",");
-            currentLat = lat;
-            currentLon = lon;
-            fetchPrayerTimes(lat, lon);
+
+            currentLat = Number(lat);
+            currentLon = Number(lon);
+
+            localStorage.setItem("selectedCity", e.target.value);
+
+            fetchPrayerTimes(currentLat, currentLon);
         });
 
         fetchPrayerTimes(currentLat, currentLon);
